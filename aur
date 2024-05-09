@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# Temporary directory for AUR operations
+temp_dir="/tmp/aur_helper_temp"
+
+# Function to check if internet is reachable
+check_internet() {
+    if curl -s --head https://aur.archlinux.org >/dev/null; then
+        return 0
+    elif curl -s --head https://ifconfig.me >/dev/null; then
+        echo -e "\033[0;31m:: aur.archlinux.org is unreachable, but internet is accessible.\033[0m"
+        return 1
+    else
+        echo -e "\033[0;31m:: Your internet connection appears to be down.\033[0m"
+        exit 1
+    fi
+}
+
+
+# Function to search for packages on the AUR
+search() {
+    query="$1"
+    check_internet
+    echo ":: Searching for packages matching '$query'"
+    curl -s "https://aur.archlinux.org/rpc/?v=5&type=search&arg=$query" | jq -r '.results[] | "\(.Name) - \(.Description)"' | while IFS= read -r line; do
+        package_name=$(echo "$line" | awk -F ' - ' '{print $1}')
+        description=$(echo "$line" | awk -F ' - ' '{print $2}')
+        printf "\033[0;32m%s\033[0m - %s\n" "$package_name" "$description"
+    done
+}
+
+# Function to install AUR packages
+install() {
+    check_internet
+    echo ":: Installing packages: $*"
+    for package in "$@"; do
+        echo ":: Installing package '$package'"
+        git clone "https://aur.archlinux.org/$package.git" "$temp_dir/$package"
+        cd "$temp_dir/$package" || exit
+        makepkg -si --noconfirm
+        cd "$temp_dir" && rm -rf "$package"
+    done
+}
+
+# Function to uninstall AUR packages
+uninstall() {
+    echo ":: Uninstalling packages: $*"
+    for package in "$@"; do
+        echo ":: Uninstalling package '$package'"
+        sudo pacman -Rsn --noconfirm "$package"
+    done
+}
+
+# Function to update installed AUR packages
+update() {
+    check_internet
+    echo ":: Synchronizing package databases..."
+    sudo pacman -Sy
+    mkdir -p "$temp_dir"
+    aur_packages=$(pacman -Qqm)
+    echo ":: Updating installed AUR packages"
+    for package in $aur_packages; do
+        git clone "https://aur.archlinux.org/$package.git" "$temp_dir/$package"
+        cd "$temp_dir/$package" || exit
+        latest_version=$(curl -s "https://aur.archlinux.org/rpc/?v=5&type=info&arg=$package" | jq -r '.results[].Version')
+        current_version=$(grep -m1 "pkgver=" PKGBUILD | cut -d '=' -f2)
+        if [[ $latest_version != $current_version ]]; then
+            echo "Updating $package..."
+            makepkg -si --noconfirm
+        fi
+        cd "$temp_dir" && rm -rf "$package"
+    done
+    rm -rf "$temp_dir"
+}
+
+# Main function to handle user input
+main() {
+    case $1 in
+        -S)
+            shift
+            install "$@"
+            ;;
+        -R)
+            shift
+            uninstall "$@"
+            ;;
+        -Ss)
+            search "$2"
+            ;;
+        -Syu)
+            update
+            ;;
+        *)
+            echo "Incorrect usage" 1>&2
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"
+

@@ -1,0 +1,53 @@
+#!/bin/bash
+
+verbose=true
+
+# Function to generate a random number
+generate_random_number() {
+  length="$1"
+  echo $(cat /dev/urandom | tr -dc '0-9' | head -c "$length")
+}
+
+# Function to shred files in a directory and its subdirectories
+shred_directory() {
+  local dir="$1"
+  for file in "$dir"/*; do
+    if [ -d "$file" ]; then
+      # If it's a directory, recursively process it
+      shred_directory "$file"
+      # Generate a random number and rename the directory
+      new_name="$(generate_random_number ${#dir})"
+      mv "$file" "$dir/$new_name"
+      if [ "$verbose" = true ]; then
+        echo "Changed directory name to $new_name"
+      fi
+    else
+      # If it's a file, shred it
+      if [ "$verbose" = true ]; then
+        sudo shred -fvuz "$file"
+      else
+        sudo shred -fuz "$file"
+      fi
+    fi
+  done
+}
+
+# Start shredding the directory and its subdirectories
+sudo shred -vfzu ~/.local/share/Trash/* 
+directory="~/.local/share/Trash/files"
+shred_directory "$directory"
+sudo shred -vfzu ~/.local/share/Trash/files/* 
+directory="~/.local/share/Trash/expunged"
+shred_directory "$directory"
+sudo shred -vfzu ~/.local/share/Trash/expunged/* 
+directory="~/.local/share/Trash/info"
+shred_directory "$directory"
+sudo shred -vfzu ~/.local/share/Trash/info/* 
+
+
+mkdir ~/.local/share/Trash/expunged
+mkdir ~/.local/share/Trash/files 
+mkdir ~/.local/share/Trash/info
+
+echo "Directories contents have been renamed and shredded."
+
