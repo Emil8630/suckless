@@ -27,21 +27,10 @@ ksuperkey -e 'Super_L=Alt_L|F1' &
 ksuperkey -e 'Super_R=Alt_L|F1' &
 
 # Restore wallpaper
-hsetroot -cover /usr/share/archcraft/dwm/wallpapers/default.png
+hsetroot -cover /home/less/github/wallpapers/gabriel-garcia-marengo-SpEQIUw7_TQ-unsplash.jpg 
 
 dir=$(pwd)
 
-# Lauch dwmbar
-#exec "$dir/bar.sh" &
-exec "$dir/bar.sh" &
-
-# Lauch notification daemon
-exec "$dir/dunst.sh" &
-#/home/less/dwm/dunst.sh &
-
-# Lauch compositor
-#exec "$dir/compositor.sh" &
-exec "$dir/compositor.sh" &
 
 # Start mpd
 exec mpd &
@@ -55,21 +44,23 @@ exec xrandr --output DP-0 --primary --mode 1920x1080 --rate 143.85 &
 #exec sleep 2
 exec xrandr --output HDMI-0 --left-of DP-0 --mode 1920x1080 &
 #exec sleep 2
-exec xrandr --output HDMI3 --right-of DP-0 --mode 1920x1080 &
+exec xrandr --output HDMI-1-3 --right-of DP-0 --mode 1920x1080 &
+# Random wall
+exec "$dir/wall.sh" &
+# Lauch dwmbar
+#exec "$dir/bar.sh" &
+exec "$dir/bar.sh" &
 
-exec variety -n &
-#exec nitrogen --restore &
+# Lauch notification daemon
+exec "$dir/dunst.sh" &
 
+# Lauch compositor
+#exec "$dir/compositor.sh" &
+exec "$dir/compositor.sh" &
 
 # Fix Java problems
 wmname "LG3D"
 export _JAVA_AWT_WM_NONREPARENTING=1
 
-## Add your autostart programs here --------------
 
-## -----------------------------------------------
-# Launch DWM
-
-#while dwm; [ $? -ne 0  ]; do echo "start dwm"; done
-
-
+exec sh $dir/numlock-restore restore
