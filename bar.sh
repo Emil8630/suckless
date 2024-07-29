@@ -5,6 +5,7 @@ interval=0
 # Weather
 
 weather() {
+  WEATHER_LOCATION=$(cat .wl)
   weather_info=$(curl -s wttr.in/$WEATHER_LOCATION?format="%t+%C")
   if [ -n "$weather_info" ]; then
     condition=$(echo "$weather_info" | cut -d'+' -f2)

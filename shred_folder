@@ -36,17 +36,17 @@ shred_directory() {
       shred_directory "$file"
       # Generate a random number and rename the directory
       new_name="$(generate_random_number ${#dir})"
-      sudo mv "$file" "$dir/$new_name"
-      sudo mv "$file" "$new_name"
+      sudo mv "$file" "$dir/$new_name" > nul
+      sudo mv "$file" "$new_name" > nul
       if [ "$verbose" = true ]; then
         echo "Changed directory name to $new_name"
       fi
     else
       # If it's a file, shred it
       if [ "$verbose" = true ]; then
-        sudo shred -fvuz "$file"
+        sudo shred -fvuz "$file" > nul
       else
-        sudo shred -fuz "$file"
+        sudo shred -fuz "$file" > nul
       fi
     fi
   done

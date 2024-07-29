@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-## Copyright (C) 2020-2023 Aditya Shakya <adi1090x@gmail.com>
-## Autostart Programs
 
 # Kill already running process
 _ps=(picom dunst ksuperkey mpd xfce-polkit xfce4-power-manager)
@@ -11,29 +9,16 @@ for _prs in "${_ps[@]}"; do
 	fi
 done
 
-# Fix cursor
-xsetroot -cursor_name left_ptr
-
-# Polkit agent
-/usr/lib/xfce-polkit/xfce-polkit &
-
-# Enable power management
-xfce4-power-manager &
-
-transmission-daemon &
-
-# Enable Super Keys For Menu
-ksuperkey -e 'Super_L=Alt_L|F1' &
-ksuperkey -e 'Super_R=Alt_L|F1' &
 
 # Restore wallpaper
 hsetroot -cover /home/less/github/wallpapers/gabriel-garcia-marengo-SpEQIUw7_TQ-unsplash.jpg 
 
-dir=$(pwd)
+usr=$(whoami)
+dir=/home/$usr/github/suckless
 
 
 # Start mpd
-exec mpd &
+#exec mpd &
 
 exec mullvad connect &
 #exec xrandr --output HDMI-0 --rate 144 --mode 1920x1080 &
@@ -44,7 +29,7 @@ exec xrandr --output DP-0 --primary --mode 1920x1080 --rate 143.85 &
 #exec sleep 2
 exec xrandr --output HDMI-0 --left-of DP-0 --mode 1920x1080 &
 #exec sleep 2
-exec xrandr --output HDMI-1-3 --right-of DP-0 --mode 1920x1080 &
+exec xrandr --output DP-2 --right-of DP-0 --mode 1920x1080 --rate 165.00 &
 # Random wall
 exec "$dir/wall.sh" &
 # Lauch dwmbar
@@ -64,3 +49,21 @@ export _JAVA_AWT_WM_NONREPARENTING=1
 
 
 exec sh $dir/numlock-restore restore
+
+# Fix cursor
+xsetroot -cursor_name left_ptr
+
+# Polkit agent
+/usr/lib/xfce-polkit/xfce-polkit &
+
+# Enable power management
+xfce4-power-manager &
+
+transmission-daemon &
+
+
+# Enable Super Keys For Menu
+ksuperkey -e 'Super_L=Alt_L|F1' &
+ksuperkey -e 'Super_R=Alt_L|F1' &
+
+
