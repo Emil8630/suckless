@@ -2,6 +2,10 @@
 #define TERMINAL "alacritty"
 #define BROWSER "librewolf"
 #include <X11/XF86keysym.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 /* appearance */
 static const unsigned int borderpx  = 4;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
@@ -84,6 +88,7 @@ static const Layout layouts[] = {
 	{ "[M]",      monocle },
 	{ NULL,       NULL },
 };
+
 
 /* key definitions */
 #define MODKEY Mod4Mask
@@ -168,12 +173,14 @@ static const Key keys[] = {
     { MODKEY|ControlMask,           XK_q,           quit,           {0} },
     { MODKEY|ShiftMask,             XK_r,           quit,           {1} },
          // Hardware Keys -----------
-    { 0,                        XF86XK_AudioMute,           spawn, {.v = mutevol } },
-    { 0,                        XF86XK_AudioMicMute,        spawn, {.v = mutemic } },
-    { 0,                        XF86XK_AudioLowerVolume,    spawn, {.v = downvol } },
-    { 0,                        XF86XK_AudioRaiseVolume,    spawn, {.v = upvol   } },
-    { 0,                        XF86XK_MonBrightnessUp,     spawn, {.v = upbl   } },
-    { 0,                        XF86XK_MonBrightnessDown,   spawn, {.v = downbl   } },
+   
+{ 0, XF86XK_AudioLowerVolume, spawn, SHCMD("sh ~/github/suckless/volume.sh --dec") },
+{ 0, XF86XK_AudioRaiseVolume, spawn, SHCMD("sh ~/github/suckless/volume.sh --inc") },
+{ 0, XF86XK_AudioMute, spawn, SHCMD("sh ~/github/suckless/volume.sh --toggle") },
+
+    { 0, XF86XK_AudioMicMute, spawn, SHCMD("pactl list sources | grep 'Name:' | awk '{print $2}' | xargs -I {} pactl set-source-mute {} toggle") },
+    { 0, XF86XK_MonBrightnessDown, spawn, SHCMD("xbacklight -dec 10") },
+    { 0, XF86XK_MonBrightnessUp, spawn, SHCMD("xbacklight -inc 10") },
 
     /* Other bindings*/
     { MODKEY,                       XK_n,           spawn,       SHCMD("dmenu_network") },

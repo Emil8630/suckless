@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 
+# Define the path to your script
+BAR_PATH="/home/$USER/github/suckless/bar.sh"
 
-# Kill already running process
-_ps=(picom dunst ksuperkey mpd xfce-polkit xfce4-power-manager)
+# Kill already running processes
+_ps=(picom dunst ksuperkey mpd xfce-polkit xfce4-power-manager "$BAR_PATH")
 for _prs in "${_ps[@]}"; do
-	if [[ `pidof ${_prs}` ]]; then
-		killall -9 ${_prs}
-	fi
+    if pidof "${_prs}" > /dev/null; then
+        echo "Killing process: ${_prs}"
+        killall -9 "${_prs}"
+    fi
 done
 
 
@@ -48,7 +51,7 @@ wmname "LG3D"
 export _JAVA_AWT_WM_NONREPARENTING=1
 
 
-exec sh $dir/numlock-restore restore
+exec "$dir/numlock-restore.sh restore" &
 
 # Fix cursor
 xsetroot -cursor_name left_ptr
@@ -60,10 +63,5 @@ xsetroot -cursor_name left_ptr
 xfce4-power-manager &
 
 transmission-daemon &
-
-
-# Enable Super Keys For Menu
-ksuperkey -e 'Super_L=Alt_L|F1' &
-ksuperkey -e 'Super_R=Alt_L|F1' &
 
 
