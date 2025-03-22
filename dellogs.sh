@@ -29,7 +29,7 @@ shred_files_and_directories() {
       sudo rmdir "$dir/$new_name"
     else
       # If it's a file, shred it
-      sudo shred -fuz -n 10 "$item"
+      sudo shred -fuz "$item"
     fi
   done
 }

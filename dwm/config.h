@@ -201,7 +201,6 @@ static const Key keys[] = {
     { MODKEY,                       XK_m,           spawn,       SHCMD("sh ~/github/suckless/mullvad-exclude.sh") },
     { MODKEY|ShiftMask,             XK_n,           spawn,       SHCMD(TERMINAL " -c floatterm -g 144x41  -e nvim ~/Documents/.vimwiki/notes.md") },
     { MODKEY,                       XK_Print,       spawn,       SHCMD("flameshot gui") },
-    { MODKEY,                       XK_z,           spawn,       SHCMD("zed") },
 
 };
 

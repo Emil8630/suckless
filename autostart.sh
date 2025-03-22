@@ -50,6 +50,7 @@ exec "$dir/compositor.sh" &
 wmname "LG3D"
 export _JAVA_AWT_WM_NONREPARENTING=1
 
+
 exec "$dir/numlock-restore.sh restore" &
 
 # Fix cursor

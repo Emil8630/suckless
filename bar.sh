@@ -1,17 +1,20 @@
 #!/usr/bin/bash
 
 
-interval=30
+interval=0
 
 # Weather
 weather() {
-  WEATHER_LOCATION=$(cat ~/github/suckless/.wl)
+  WEATHER_LOCATION=$(cat .wl)
 
   # URL-encode the city name to handle spaces and special characters
   ENCODED_LOCATION=$(echo "$WEATHER_LOCATION" | jq -sRr @uri)
 
   # Get coordinates from Nominatim API
   geocode_info=$(curl -s "https://nominatim.openstreetmap.org/search?q=${ENCODED_LOCATION}&format=json&limit=1")
+
+  # Debugging: Print the raw geocode response
+  #echo "Geocode response: $geocode_info" >&2
 
   # Extract latitude and longitude
   latitude=$(echo "$geocode_info" | jq -r '.[0].lat')
@@ -21,92 +24,54 @@ weather() {
     # Use Open-Meteo API to get weather data
     weather_info=$(curl -s "https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true")
 
-    # Check for API request limit error
-    if echo "$weather_info" | jq -e '.error' >/dev/null 2>&1; then
-      error_reason=$(echo "$weather_info" | jq -r '.reason')
-      if [[ "$error_reason" == *"Daily API request limit exceeded"* ]]; then
-        echo "Daily API request limit exceeded. Weather information will not be printed." >&2
-        return  # Exit the function early
-      fi
-    fi
-
-    # Proceed only if weather_info is valid and contains current weather data
     if [ -n "$weather_info" ]; then
       # Extract temperature and weather condition from the JSON response
       temp=$(echo "$weather_info" | jq -r '.current_weather.temperature')
 
-      # Check if temp is a valid number
-      if [[ "$temp" =~ ^-?[0-9]+(\.[0-9]+)?$ ]]; then
-        temp_int=$(printf "%.0f" "$temp") # Round to the nearest integer
-        temp_celsius="${temp_int}°C" # Append the Celsius symbol
-      else
-        echo "Invalid temperature value: $temp" >&2
-        temp_celsius="N/A" # Or handle it in another way
-      fi
+      # Format the temperature to get the integer part and add the Celsius symbol
+      temp_int=$(printf "%.0f" "$temp") # Round to the nearest integer
+      temp_celsius="${temp_int}°C" # Append the Celsius symbol
 
       condition=$(echo "$weather_info" | jq -r '.current_weather.weathercode')
 
       # Map weather codes to corresponding conditions
       case "$condition" in
-        0 | 1)
-            weather="Clear"
-            weather_icon=""
+        0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 )
+            weather="Clear" # Adjust based on Open-Meteo weather codes
+            weather_icon="" # Nerd Font icon for clear weather
             ;;
-        10 | 11 | 12 | 13 | 14 | 15 | 2 )
-            weather="Partly cloudy"
-            weather_icon=""
+        10 | 11 | 12 | 13 | 14 | 15 )
+            weather="Partly cloudy" # Adjust based on Open-Meteo weather codes
+            weather_icon="" # Nerd Font icon for partly cloudy or cloudy weather
             ;;
-        3 )
-            weather="Overcast"
-            weather_icon=""
+        16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 )
+            weather="Rain" # Adjust based on Open-Meteo weather codes
+            weather_icon="" # Nerd Font icon for rain
             ;;
-        61 | 63 | 65 )
-            weather="Rain"
-            weather_icon=""
+        24 )
+            weather="Thunder" # Adjust based on Open-Meteo weather codes
+            weather_icon="" # Nerd Font icon for thunder
             ;;
-        66 | 67 )
-            weather="Freezing Rain"
-            weather_icon="󰙿"
+        25 | 26 )
+            weather="Overcast" # Adjust based on Open-Meteo weather codes
+            weather_icon="" # Nerd Font icon for overcast
             ;;
-        80 | 81 | 82 )
-            weather="Rain Showers"
-            weather_icon=""
+        27 | 28 | 29 | 30 )
+            weather="Snow" # Adjust based on Open-Meteo weather codes
+            weather_icon="" # Nerd Font icon for snow
             ;;
-        24 | 95 | 96 | 99 )
-            weather="Thunder"
-            weather_icon=""
-            ;;
-        71 | 73 | 75 | 86 )
-            weather="Snow"
-            weather_icon="󰼶"
-            ;;
-        77 | 85)
-            weather="Snow grains"
-            weather_icon="󰖘"
-            ;;
-        45 | 48 | 33 | 34 )
-            weather="Mist"
-            weather_icon=""
-            ;;
-        51 | 53 | 55 )
-            weather="Drizzle"
-            weather_icon="󰖗"
-            ;;
-        56 | 57 )
-            weather="Freezing Drizzle"
-            weather_icon="󰙿"
+        31 | 32 | 33 | 34 )
+            weather="Mist" # Adjust based on Open-Meteo weather codes
+            weather_icon="" # Nerd Font icon for mist, fog, or haze
             ;;
         *)
-            weather="Unknown weather type please make a pull request adding said weather type."
-            weather_icon=""
+            weather="Unknown weather type please make a pull request adding said weather type." # Default case
+            weather_icon="" # Default Nerd Font icon for unknown weather
             ;;
       esac
 
-      # Only print if temp_celsius is valid
-      if [ -n "$temp_celsius" ]; then
-        printf "^c#B8BAB4^^b#1b1b1b^ $weather_icon $temp_celsius "
-        printf "^c#0f100f^^b#0f100f^  "
-      fi
+      printf "^c#B8BAB4^^b#1b1b1b^ $weather_icon $temp_celsius "
+      printf "^c#0f100f^^b#0f100f^  "
     fi
   else
     echo "Could not find coordinates for $WEATHER_LOCATION." >&2
@@ -142,12 +107,12 @@ updates() {
     updates=$(checkupdates | wc -l)
 
     if [ "$updates" -ge 300 ]; then
-    printf "^c#B8BAB4^^b#1b1b1b^   $updates updates "
+    printf "^c#B8BAB4^^b#1b1b1b^  $updates updates "
     printf "^c#0f100f^^b#0f100f^  "
     #printf "^c#e1e3da^  Updated"
   elif [[ "$updates" -ge 1000 ]]; then
 #    printf "^c#e06c75^  $updates"" updates"
-    printf "^c#B8BAB4^^b#e06c75^   $updates updates "
+    printf "^c#B8BAB4^^b#e06c75^  $updates updates "
     printf "^c#0f100f^^b#0f100f^  "
     else
     :
@@ -161,18 +126,10 @@ kernel() {
 	printf "^c#0f100f^^b#0f100f^  "
 }
 
-disc_free() {
-  total_space=$(df / | awk 'NR==2 {print $2}')
-  used_space=$(df / | awk 'NR==2 {print $3}')
-  used_space_percent=$(( used_space * 100 / total_space ))
-  printf "^c#B8BAB4^^b#1b1b1b^ 󰗮 $used_space_percent%% "
-	printf "^c#0f100f^^b#0f100f^  "
-}
-
 ## Main
 while true; do
   [ "$interval" == 0 ] || [ $(("$interval" % 3600)) == 0 ] && updates=$(updates)
   interval=$((interval + 1))
 
-  xsetroot -name "$(updates) $(weather) $(disc_free) $(clockdark)"
+  sleep 1 && xsetroot -name "$(updates) $(weather) $(kernel) $(clockdark)"
 done
