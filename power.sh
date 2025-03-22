@@ -1,18 +1,21 @@
 #!/bin/bash
 
-options=("🔴 Shutdown" "🔄 Reboot" "🔒 Lock" "👤 Logout")
+options=("🔴 Shutdown" "🔄 Reboot" "🌙 Sleep" "🔒 Lock" "👤 Logout")
 selected_option=$(printf '%s\n' "${options[@]}" | dmenu -i -p "Power Menu:")
 
-dir=$(pwd)
+dir="/home/$USER/github/suckless"
 
 case "$selected_option" in
     "🔴 Shutdown")
-        sh $dir/numlock-restore save
+        sh "$dir/numlock-restore.sh save"
         shutdown now
         ;;
     "🔄 Reboot")
-        sh $dir/numlock-restore save
+        sh "$dir/numlock-restore.sh save"
         reboot
+        ;;
+    "🌙 Sleep")
+        systemctl suspend 
         ;;
     "👤 Logout")
         pkill -u "$USER"

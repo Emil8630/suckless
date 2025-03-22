@@ -25,7 +25,7 @@ restore_numlock_state() {
         elif [[ $saved_state == "off" && $current_state == "on" ]]; then
             xdotool key Num_Lock
         fi
-        rm $STATE_FILE
+#        rm $STATE_FILE
     fi
 }
 
